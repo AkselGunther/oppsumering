@@ -1,0 +1,35 @@
+body{
+    background-color: whitesmoke;
+    width: 70%;
+    margin: auto;
+    font-size: fantasy;
+        
+    background-image: url('img/rorbuer.jpg');
+    background-repeat: no-repeat;
+    background-size: 100%;
+}
+article {
+    float: left;
+    padding: 20px;
+    width: 100%;
+    background-color: #f1f1f1;
+    
+  }
+  section::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+  button{
+    float: right;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    background-color: rgb(204, 30, 30);
+}
