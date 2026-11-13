@@ -12,6 +12,7 @@ Hengslet pregetang, printes ferdig montert (print-in-place) – ingen støtte n�
 
 ## Print
 - Legg flatt slik den er i fila. Ingen support.
+- Kantene er avrundet/faset, og hengselknokene har myke overganger (hulkil) mot platene.
 - 0,2 mm lag, 3–4 vegger, 40 %+ infill (den må tåle trykk).
 - PLA/PETG. Hvis hengselen sitter fast etter print: bøy forsiktig fram og tilbake til den løsner.
 

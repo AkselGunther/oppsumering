@@ -11,7 +11,6 @@ TXT_W     = 0;             // 0 = automatisk bredde ut fra tekstlengde
 W         = 32;    // bredde (langs hengselen)
 L         = 62;    // lengde på basen fra papirkant til hengselakse
 T         = 4;     // platetykkelse (base og lokk)
-TAB       = 0;     // lokket flukter med basen (ingen utstikkende kant)
 R         = 4.0;   // hengselknoke radius
 PIN_R     = 1.8;   // tapp radius
 CLR       = 0.40;  // klaring i hengsel (radielt og aksialt)
@@ -31,9 +30,19 @@ KL = W - 2*KB - 2*GAP;     // lokk-knoke
 y_lid0 = KB + GAP;
 y_lid1 = y_lid0 + KL;
 
-DIE_CX = (X0 - R - GAP) / 2 + 1;
+// Avrunding / myke overganger
+CORNER_R = 3;      // avrundede hjørner i fri ende
+CH_TOP   = 0.8;    // fas på toppkant
+CH_BOT   = 0.5;    // fas på bunnkant (motvirker "elephant foot")
+FIL      = 2;      // hulkil mellom hengselknoke og plate
+KCH      = 0.5;    // fas på knokenes ender
+
+CX  = sqrt((R + FIL)^2 - FIL^2);   // hvor hulkilen møter platen (fra aksen)
+CUT = CX + GAP;                     // utsparing rundt motstående knoke
+
+DIE_CX = (X0 - CUT) / 2 + 1;
 DIE_CY = W / 2;
-tw = TXT_W > 0 ? TXT_W : min(X0 - R - GAP - 10, len(TXT) * 9);
+tw = TXT_W > 0 ? TXT_W : min(X0 - CUT - 10, len(TXT) * 9);
 
 module footprint() {
     translate([DIE_CX, DIE_CY])
@@ -41,26 +50,59 @@ module footprint() {
             text(TXT, size = 10, font = FONT, halign = "center", valign = "center");
 }
 
+// 2D-plate: avrundede hjørner i fri ende (x=0), rette ved hengselen
+module plate2d(inset = 0) {
+    offset(delta = -inset) hull() {
+        translate([CORNER_R, CORNER_R]) circle(r = CORNER_R);
+        translate([CORNER_R, W - CORNER_R]) circle(r = CORNER_R);
+        translate([X0 - 1, 0]) square([1, W]);
+    }
+}
+// Plate med fas oppe og nede
+module plate(z0, h, cb, ct) {
+    translate([0, 0, z0]) hull() {
+        linear_extrude(0.01) plate2d(cb);
+        translate([0, 0, cb]) linear_extrude(h - cb - ct) plate2d(0);
+        translate([0, 0, h - 0.01]) linear_extrude(0.01) plate2d(ct);
+    }
+}
+
+// Knoke med fasede ender
 module knuckle(y0, y1) {
-    translate([X0, y0, H]) rotate([-90, 0, 0]) cylinder(r = R, h = y1 - y0);
+    translate([X0, y0, H]) rotate([-90, 0, 0]) hull() {
+        cylinder(r = R - KCH, h = y1 - y0);
+        translate([0, 0, KCH]) cylinder(r = R, h = y1 - y0 - 2*KCH);
+    }
+}
+
+// Hulkil (myk overgang) mellom knoke og plateflate på z = H.
+// up = 1: kilen går oppover fra flaten, up = -1: nedover.
+module fillet(y0, y1, up = 1) {
+    C = [X0 - CX, H + up*FIL];
+    T = [X0, H] + R * (C - [X0, H]) / norm(C - [X0, H]);
+    translate([0, y1 - KCH, 0]) rotate([90, 0, 0]) linear_extrude(y1 - y0 - 2*KCH)
+        difference() {
+            polygon([[X0 - CX, H], [X0, H], T, C]);
+            translate(C) circle(r = FIL);
+        }
 }
 
 // ---------- BASE (ligger fast på bordet) ----------
 module base() {
     difference() {
         union() {
-            cube([X0, W, T]);
+            plate(0, T, CH_BOT, CH_TOP);
             knuckle(0, KB);
             knuckle(W - KB, W);
-            // tapp gjennom hele hengselen
-            translate([X0, 0, H]) rotate([-90, 0, 0]) cylinder(r = PIN_R, h = W);
+            fillet(0, KB, 1);
+            fillet(W - KB, W, 1);
             // hevet tekst
             translate([0, 0, T]) linear_extrude(RELIEF) footprint();
         }
         // utsparing for lokk-knoken
-        translate([X0 - R - GAP, y_lid0 - GAP, -1]) cube([2*R + 2*GAP + 1, KL + 2*GAP, 3*T]);
+        translate([X0 - CUT, y_lid0 - GAP, -1]) cube([CUT + R + 1, KL + 2*GAP, 3*T]);
     }
-    // tappen må fortsatt gå gjennom utsparingen
+    // tapp gjennom hele hengselen
     translate([X0, 0, H]) rotate([-90, 0, 0]) cylinder(r = PIN_R, h = W);
 }
 
@@ -68,12 +110,13 @@ module base() {
 module lid_closed() {
     difference() {
         union() {
-            translate([-TAB, 0, T]) cube([X0 + TAB, W, T]);
+            plate(T, T, CH_TOP, CH_BOT);   // undersiden blir oversiden i print
             knuckle(y_lid0, y_lid1);
+            fillet(y_lid0, y_lid1, -1);
         }
         // klaring rundt base-knokene
-        translate([X0 - R - GAP, -1, 0]) cube([2*R + GAP + 1, KB + GAP + 1, 3*T]);
-        translate([X0 - R - GAP, W - KB - GAP, 0]) cube([2*R + GAP + 1, KB + GAP + 1, 3*T]);
+        translate([X0 - CUT, -1, 0]) cube([CUT + R + 1, KB + GAP + 1, 3*T]);
+        translate([X0 - CUT, W - KB - GAP, 0]) cube([CUT + R + 1, KB + GAP + 1, 3*T]);
         // nedsenket tekst (matrise) i undersiden
         translate([0, 0, T - 0.01]) linear_extrude(DEPTH + 0.01) offset(r = PAPER_OFF) footprint();
     }
