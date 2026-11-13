@@ -11,7 +11,7 @@ TXT_W     = 0;             // 0 = automatisk bredde ut fra tekstlengde
 W         = 32;    // bredde (langs hengselen)
 L         = 62;    // lengde på basen fra papirkant til hengselakse
 T         = 4;     // platetykkelse (base og lokk)
-TAB       = 4;     // gripekant på lokket
+TAB       = 0;     // lokket flukter med basen (ingen utstikkende kant)
 R         = 4.0;   // hengselknoke radius
 PIN_R     = 1.8;   // tapp radius
 CLR       = 0.40;  // klaring i hengsel (radielt og aksialt)

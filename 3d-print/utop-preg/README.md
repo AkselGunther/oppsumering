@@ -8,7 +8,7 @@ Hengslet pregetang, printes ferdig montert (print-in-place) – ingen støtte n�
 | `utop_no.stl` | UTOP.no |
 | `utop_preg.scad` | Kildefil (OpenSCAD) – endre `TXT` for annen tekst |
 
-**Mål:** 128 × 32 × 8 mm (åpen/printposisjon). Ferdig lukket ca. 66 × 32 × 8 mm.
+**Mål:** 124 × 32 × 8 mm (åpen/printposisjon). Lukket ligger lokket kant i kant med basen.
 
 ## Print
 - Legg flatt slik den er i fila. Ingen support.
