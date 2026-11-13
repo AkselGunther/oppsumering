@@ -4,7 +4,7 @@
 //
 // Render:  openscad -D 'TXT="UTOP"' -o utop.stl utop_preg.scad
 
-TXT       = "UTOP";        // "UTOP" eller "UTOP.no"
+TXT       = "UTOP";        // "UTOP" (logo) eller "utop.no" (nettside)
 FONT      = "Inter:style=Bold";
 TXT_W     = 0;             // 0 = automatisk bredde ut fra tekstlengde
 
